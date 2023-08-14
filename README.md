@@ -42,9 +42,20 @@ This laboratory assumes the following:
 - the IOS XR has Iperf installed on it
 - the IOS XR has the following configuration:
   ```
+  !
+  interface MgmtEth0/RP0/CPU0/0
+  ipv4 address 192.168.1.177 255.255.255.0
+  !
+  interface GigabitEthernet0/0/0/0
+  ipv4 address 192.168.10.10 255.255.255.0
+  !
+  interface GigabitEthernet0/0/0/1
+  ipv4 address 192.168.20.10 255.255.255.0
+  !
+  aaa authorization exec default local
   telemetry model-driven
    destination-group DGroup1
-    address-family ipv4 198.18.134.50 port 57777
+    address-family ipv4 192.168.1.201 port 57777
      encoding self-describing-gpb
      protocol grpc no-tls
     !
@@ -74,6 +85,12 @@ This laboratory assumes the following:
   !
   ```
 
+ssh server v2
+ssh server netconf vrf default
+netconf agent tty
+
+```
+
 ## Usage
 
 Access the lab at https://198.18.134.50:8443.
@@ -81,21 +98,20 @@ Access the lab at https://198.18.134.50:8443.
 Start with the [`workshop`](./workshop.ipynb) lab.
 To run a section of the laboratory, select the cell and press `Shift+Enter`.
 
-
 ## How to test the software
 
 This laboratory was tested in an environment that had the following software installed:
 
-| Software  | version |
-| ------------- | ------------- |
-|  python  | `3.6.8`  |
-|  ncclient  | `0.6.6` |
-| jupyter lab | `1.2.3` |
-| docker | `19.03.5` |
-| docker-compose | `1.23.2` |
-| iperf (server) | `2.0.5` |
-| iperf (client) | `2.0.13` |
-| IOS XR | `7.0.x` |
+| Software       | version   |
+| -------------- | --------- |
+| python         | `3.6.8`   |
+| ncclient       | `0.6.6`   |
+| jupyter lab    | `1.2.3`   |
+| docker         | `19.03.5` |
+| docker-compose | `1.23.2`  |
+| iperf (server) | `2.0.5`   |
+| iperf (client) | `2.0.13`  |
+| IOS XR         | `7.0.x`   |
 
 ## Getting help
 
@@ -109,4 +125,5 @@ Feedback, bug fixes and feature enhancements or additions are encouraged. Please
 
 This project was written and is maintained by the following individuals:
 
-* cprecup <cprecup@cisco.com>
+- cprecup <cprecup@cisco.com>
+```
