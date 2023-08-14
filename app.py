@@ -20,8 +20,6 @@ filter_payload = """
 """
 
 config = netconf_connection.get_config(source='running', filter=filter_payload)
-print(config)
-
 filter_payload = """
 <filter>
  <telemetry-model-driven xmlns="http://cisco.com/ns/yang/Cisco-IOS-XR-telemetry-model-driven-oper">
