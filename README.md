@@ -1,129 +1,134 @@
-# xr-netconf-lab
-
-[![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/CiscoDevNet/xr-netconf-lab) [![Run in Cisco Cloud IDE](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-runable-icon.svg)](https://developer.cisco.com/devenv/?id=devenv-vscode-base&GITHUB_SOURCE_REPO=https://github.com/CiscoDevNet/xr-netconf-lab)
-
-_Understand NETCONF/YANG and build your first NETCONF client with Python to interwork with IOS-XR_
-
-<img src="images/model-driven programmability.png">
- 
-## Use Case Description
-
-This laboratory comes with a Jupyter lab for practising the NETCONF functionalities of Cisco IOS XR. A set of Docker containers is used for collecting and monitoring model-driven telemetry data, as traffic is being generated.
-
-## Installation
-
-### Dependencies
-
-- Python 3
-- [Ncclient](https://github.com/ncclient/ncclient) library
-- Jupyter lab
-- Docker
-- Docker-compose
-- Iperf
-- IOS XR
-
-### Configure
-
-1. Deploy the stack of containers for monitoring of telemetry data by following these [instructions](monitoring/README.md).
-
-2. Load the _Traffic Monitoring_ dashboard in Chronograf.
-
-## Configuration
-
-The details for the connection and authentication to the IOS XR can be found in the [`workshop-configuration.ini`](./workshop-configuration.ini) file.
-
-This laboratory assumes the following:
-
-- the host of the Jupyter lab and the docker containers is `198.18.134.50` and is a Linux host
-- the Jupyter notebook is exposed on port `8443`
-- the Chronograf web application is exposed on port `8888`
-- the IOS XR is reachable at `198.18.134.72` with username `cisco` and password `cisco`
-- the Linux host has Iperf installed on it
-- the IOS XR has Iperf installed on it
-- the IOS XR has the following configuration:
-  ```
-  !
-  interface MgmtEth0/RP0/CPU0/0
-  ipv4 address 192.168.1.177 255.255.255.0
-  !
-  interface GigabitEthernet0/0/0/0
-  ipv4 address 192.168.10.10 255.255.255.0
-  !
-  interface GigabitEthernet0/0/0/1
-  ipv4 address 192.168.20.10 255.255.255.0
-  !
-  aaa authorization exec default local
-  telemetry model-driven
-   destination-group DGroup1
-    address-family ipv4 192.168.1.201 port 57777
-     encoding self-describing-gpb
-     protocol grpc no-tls
-    !
-   !
-   sensor-group SGroupGeneric1
-    sensor-path Cisco-IOS-XR-ifmgr-oper:interface-properties/data-nodes/data-node/system-view
-   !
-   subscription Subscription1
-    sensor-group-id SGroupGeneric1 strict-timer
-    sensor-group-id SGroupGeneric1 sample-interval 10000
-    destination-id DGroup1
-   !
-  !
-  tpa
-   vrf default
-    address-family ipv4
-     update-source dataports Loopback0
-    !
-   !
-  !
-  netconf-yang agent
-   ssh
-  !
-  interface Loopback0
-   ipv4 address 1.1.1.1 255.255.255.255
-   shutdown
-  !
-  ```
-
-ssh server v2
-ssh server netconf vrf default
-netconf agent tty
+## Device Versions used in the lab
 
 ```
-
-## Usage
-
-Access the lab at https://198.18.134.50:8443.
-
-Start with the [`workshop`](./workshop.ipynb) lab.
-To run a section of the laboratory, select the cell and press `Shift+Enter`.
-
-## How to test the software
-
-This laboratory was tested in an environment that had the following software installed:
-
 | Software       | version   |
 | -------------- | --------- |
-| python         | `3.6.8`   |
+| python         | `3.10.x`   |
 | ncclient       | `0.6.6`   |
-| jupyter lab    | `1.2.3`   |
 | docker         | `19.03.5` |
 | docker-compose | `1.23.2`  |
 | iperf (server) | `2.0.5`   |
 | iperf (client) | `2.0.13`  |
-| IOS XR         | `7.0.x`   |
+| IOS XR         | `7.9.2`   |
+```
 
-## Getting help
+### Lab Setup
 
-If you have questions, concerns, bug reports, etc., please create an issue against this repository.
+<img src="images/IOSxr.jpg">
 
-## Getting involved
+### Running the Monitoring Stack
 
-Feedback, bug fixes and feature enhancements or additions are encouraged. Please see the [CONTRIBUTING](./CONTRIBUTING.md) file for more information.
+Login to the `Management PC` and clone this repository
 
-## Author(s)
+```
+git clone https://github.com/munibshah/xr-netconf.git
 
-This project was written and is maintained by the following individuals:
+cd monitoring
+docker-compose build; docker-compose up -d
+```
 
-- cprecup <cprecup@cisco.com>
+#### Restart the environment
+
+```
+docker-compose down; docker-compose build; docker-compose up -d
+
+```
+
+You should not be able to access your Chronograph at `<IP address>:8888`
+
+<img src="images/traffic 0.png">
+
+### IOS-XR Configuration
+
+IOS XR comes with a NETCONF server that can be activated using the following commands:
+
+```
+netconf-yang agent ssh
+netconf agent tty
+
+ssh server v2
+ssh server netconf vrf default
+```
+
+Next configure interfaces and enable a telemetry subscription to stream data towards the `Management Client` over gRPC
+
+#### Interface configuration:
+
+```
+!
+interface MgmtEth0/RP0/CPU0/0
+ipv4 address 192.168.1.177 255.255.255.0
+!
+interface GigabitEthernet0/0/0/0
+ipv4 address 192.168.10.10 255.255.255.0
+!
+interface GigabitEthernet0/0/0/1
+ipv4 address 192.168.20.10 255.255.255.0
+!
+
+```
+
+#### Model Telemetry Configuration:
+
+```
+telemetry model-driven
+ destination-group DGroup1
+  address-family ipv4 192.168.1.201 port 57777
+   encoding self-describing-gpb
+   protocol grpc no-tls
+  !
+ !
+ sensor-group SGroupGeneric1
+  sensor-path Cisco-IOS-XR-ifmgr-oper:interface-properties/data-nodes/data-node/system-view
+ !
+ subscription Subscription1
+  sensor-group-id SGroupGeneric1 strict-timer
+  sensor-group-id SGroupGeneric1 sample-interval 10000
+  destination-id DGroup1
+```
+
+### Run app.py to connect to IOSXR
+
+Modify the environment variables located in `workshop-configuration.ini`
+
+```
+nano workshop-configuration.ini
+```
+
+#### Run the Python script to connect to IOSXR using NETCONF
+
+```
+source myenv/bin/activate
+python3 app.py
+```
+
+You should see the following output
+
+<img src="images/IOSXR-Netconf.png">
+
+### Model Telemetry
+
+Start traffic generation on the Linux Server and Client
+
+#### iperf3 server
+
+```
+iperf3 -sD
+```
+
+#### iperf3 client
+
+```
+iperf3 -c 192.168.10.1 -b 1000000 -d -t 3600 -i 10
+```
+
+Login to Chronograph and import the dashboard located at `monitoring/chronograf/Traffic Monitoring.json`
+
+You should see the following output which confirms that IOSXR is sending telemetry towards the `Management Client` over gRPC
+<img src="images/traffic 2.png">
+
+```
+Author: This lab is an adaption of the DevNet lab written by cprecup <cprecup@cisco.com>
+Original repository: https://github.com/munibshah/xr-netconf.git
+
 ```
