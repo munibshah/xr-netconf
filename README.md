@@ -127,8 +127,5 @@ Login to Chronograph and import the dashboard located at `monitoring/chronograf/
 You should see the following output which confirms that IOSXR is sending telemetry towards the `Management Client` over gRPC
 <img src="images/traffic 2.png">
 
-```
-Author: This lab is an adaption of the DevNet lab written by cprecup <cprecup@cisco.com>
+Author(s): This lab is an adaption of the DevNet lab written by cprecup <cprecup@cisco.com>
 Original repository: https://github.com/munibshah/xr-netconf.git
-
-```
